@@ -146,7 +146,56 @@
 
 
 ### 컴포지트 빌더
+> 빌더에 관련된 마지막 예로 객체 하나를 생성하는데 복수의 빌더가 사용되는 경우를 살펴보자. 두 종류의 데이터 주소와 직업정보가 있는 Person 클래스가 있다고 생각해보자. 빌더를 각 정보마다 따로 두고 싶다면 API를 어떻게 만드는 것이 가장 편리할까? 이를 위해 콤포지트 빌더를 고안한다. 하나가 아니라 4개의 클래스로 빌더를 정의한다.
 
+    class PersonBuilderBase{
+    protected:
+    	Person& person;
+    	explicit PersonBuilderBase(Person& person) : person{ person } {}
+    public:
+    	operator Person(){ return std::move(person); }
+    	PersonAddressBuilder lives() const;
+    	PersonJobBuilder works() const; };
+
+> 첫 번째 빌더 클래스는 PersonBuilderBase이다. 
+> 1. 참조 변수 person은 현재 생성되고 있는 객체에 대한 참조를 담는다. Person의 실제 저장소가 이 클래스 안에 없다는 점이 대단히 중요하다. 베이스 클래스는 단지 참조만 가질 뿐, 생성된 객체는 가지지 않는다.
+> 2. 참조 대입을 하는 생성자는 protected로 선언하여 그 자식 클래스들에서만 이용할 수 있게 한다.
+> 3. operator Person을 통해 이동 생성자를 이용한다.
+> 4. lives()와 works() 함수는 하위 빌더의 인터페이스를 리턴한다. 하위 빌더들은 각각 주소와 직업 정보를 초기화한다.
+
+
+    class PersonBuilder : public PersonBuilderBase{
+    	Person p;
+    public:
+    	PersonBuilder() : PersonBuilderBase{p} {} };
+
+
+> 두 번째 빌더 클래스는 PersonBuilder이다. 여기서는 실제 객체가 생성된다. 이 클래스는 사실 빌더 베이스를 상속받을 필요가 없지만 빌더 구동 절차를 초기화하기 쉽도록 편의상 그렇게하고 있다.
+
+
+    class PersonAddressBuilder : public PersonBuilderBase {
+    	typedef PersonAddressBuilder self;
+    public:
+    	explicit PersonAddressBuilder(Person& person) 
+	    	: PersonBuilderBase{ person } {}
+    	self& at(std::string street_address){ 
+    	person.street_address = street_address; return *this; }
+    	self& with_postcode(std::string post_code) { ... }
+    	self& in(std::string city){ ... } };
+
+> 세 번째와 네 번째 빌더 클래스는 하위 빌더 클래스인 PeronAddressBuilder와 PersonJobBuilder이다. 
+> 코드에서 보여지는 바와 같이 PersonAddressBuilder는 Person의 주소를 생성하는데 풀루언트 인터페이스 스타일을 지원한다. PersonAddressBuilder는 PersonBuilderBase를 상속받고 있고 Person의 참조를 인자로 하여 베이스의 생성자를 호출한다.
+
+
+    Person p = Person::create()
+    	.lives().at("123 London Road")
+    			.with_postcode("SW1 1GB")
+    			.in("London")
+    	.works().at("PragmaSoft")
+    			.as_a("Consultant")
+    			.earning(10e6)
+
+> 이제 사용자가 어떻게 이 빌더를 사용할 수 있는지 확인해보자.
 ### 요약
 
 > 빌더 패턴의 목적은 여러 복잡한 요소들의 조합이 필요한 객체를 생성해야 하거나 또는 여러개의 다양한 객체 집합을 생성해야 할 때 객체 생성만을 전담하는 컴포넌트를 정의하여 객체 생성을 간편하게 하는 것이다. 빌더 패턴에서 빌더의 특징을 정리하면 다음과 같다.
