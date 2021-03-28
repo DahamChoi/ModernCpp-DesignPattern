@@ -42,3 +42,6 @@
 이제 반복 변환 작업은 없다. 하지만 잠깐 다시 생각해보자. 원본 vectorObjects가 바뀌어 선분을 다시 점으로 변환해야 하는 경우에는 어떻게 할 것인가? 미리 만들어 두고 재활용하는 방식을 사용할 수가 없다. 하지만 비효율적인 반복 변환 작업도 피해야 한다. 어떻게 해야 할까? 캐싱을 활용한다.
 
 [ModernCpp-DesignPattern/structural/adapter at main · DahamChoi/ModernCpp-DesignPattern (github.com)](https://github.com/DahamChoi/ModernCpp-DesignPattern/tree/main/structural/adapter)
+
+## 요약
+어댑터는 매우 단순한 개념이다. 사용할 수밖에 없는 인터페이스를 사용하고 싶은 인터페이스로 감쌀 수 있게 해준다. 어뎁터가 가진 유일한 난관은 서로 다른 인터페이스를 이어 붙여 나가는 과정에 있다. 어떤 경우에는 데이터 표현 방식을 맞추기 위해 임시 데이터를 만들어야 할 수도 있다. 그런 경우에는 캐싱을 활용하여 꼭 필요할 때만 임시 데이터가 생성되게 하여 불필요한 변환 작업이 일어나는 것을 피한다. 추가로, 캐시된 객체가 변경되었을 때 무효해진 데이터를 제거하는 기능도 구현할 필요가 있다.
